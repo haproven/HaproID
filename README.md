@@ -21,7 +21,7 @@ It lets you showcase your professional and personal details in a single link.
 - Projects / Portfolio  
 
 ---
-
+---
 ## 🎯 फायदे (Benefits)
 
 1. **One-link profile** – No need to share the link again and again.
@@ -34,12 +34,10 @@ It lets you showcase your professional and personal details in a single link.
 ---
 
 ## 🛠️ How to create HaproID?
-
 1. [HaproID Create Link](https://haproid.netlify.app/)go to. 
 2. Your **username** Pro-[first-name]-[serial-number]
 3. Fill profile details
 4. Share your link and increase your digital presence.
-
 ---
 
 ## 🔗 Example
