@@ -1,4 +1,4 @@
-# GitProHub
+# HaproID
 
 ## Project
 
