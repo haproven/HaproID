@@ -11,8 +11,8 @@ image: https://haproid.netlify.app/assets/img/user/main/pro-himanshu-02.webp
 ## Links
 
 live: https://haproid.netlify.app/
-demo:
-documentation:
+demo: https://haproid.netlify.app/
+documentation: https://haproid.netlify.app/
 
 ## Discover
 
