@@ -1,21 +1,21 @@
-# HaproID
+# Haproid
 
 ## Project
 
-title: HaproID
-description: A verified digital identity and professional profile platform for developers, creators, and professionals.
+title: Haproid
+description: Discover the innovative platforms and products that make up the Haproven ecosystem.
 category: Developer Tools
 status: Active
-image: https://haproid.netlify.app/assets/img/user/main/pro-himanshu-02.webp
+image: https://haproven.netlify.app/assets/img/haproven-logo.png
 
 ## Links
 
 live: https://haproid.netlify.app/
-demo: https://haproid.netlify.app/
-documentation: https://haproid.netlify.app/
+demo:
+documentation:
 
 ## Discover
 
-tags: haproid, digital-identity, developer-profile, portfolio, cv, professional-profile, haproven
-featured: true
+tags: haprobase, haproven, developer-tools, web-platform, html, pwa, open-source
+featured: false
 open_source: true
