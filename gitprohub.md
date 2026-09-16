@@ -3,10 +3,10 @@
 ## Project
 
 title: Haproid
-description: Discover the innovative platforms and products that make up the Haproven ecosystem.
-category: Developer Tools
+description: A central platform for discovering and exploring the digital products, developer tools, web platforms, and projects built within the Haproven technology ecosystem.
+category: Technology Ecosystem
 status: Active
-image: https://haproven.netlify.app/assets/img/haproven-logo.png
+image: https://raw.githubusercontent.com/haproven/HaproID/refs/heads/main/roots/haproid.png
 
 ## Links
 
@@ -16,6 +16,6 @@ documentation:
 
 ## Discover
 
-tags: haprobase, haproven, developer-tools, web-platform, html, pwa, open-source
+tags: technology-ecosystem, digital-products, developer-tools, web-platforms, project-showcase, open-source-projects, pwa, web-development, technology-projects, haproven, open-source
 featured: false
 open_source: true
