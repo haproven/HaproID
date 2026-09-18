@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Profile | HaproID</title>
+
+    <meta
+        name="description"
+        content="Verified digital profile powered by HaproID."
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #111;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: min(700px, 92%);
+            margin: 60px auto;
+        }
+
+        .profile {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 24px;
+            background: #eee;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .role {
+            display: inline-block;
+            padding: 7px 16px;
+            border-radius: 30px;
+            background: #eee;
+            font-size: 14px;
+            text-transform: capitalize;
+        }
+
+        .bio {
+            margin: 25px auto;
+            max-width: 560px;
+            line-height: 1.7;
+            color: #555;
+        }
+
+        .email {
+            display: inline-block;
+            color: #111;
+            text-decoration: none;
+            margin-top: 5px;
+        }
+
+        .email:hover {
+            text-decoration: underline;
+        }
+
+        .profile-id {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .profile-url {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #999;
+            word-break: break-all;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 11px 20px;
+            border-radius: 10px;
+            background: #111;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .back:hover {
+            opacity: 0.85;
+        }
+
+        .loading,
+        .error {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error h2 {
+            margin-bottom: 10px;
+        }
+
+        .error p {
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <main class="container">
+
+        <!-- ==============================
+             LOADING
+        =============================== -->
+
+        <section
+            id="loading"
+            class="loading"
+        >
+
+            <p>
+                Loading profile...
+            </p>
+
+        </section>
+
+
+        <!-- ==============================
+             ERROR
+        =============================== -->
+
+        <section
+            id="error"
+            class="error hidden"
+        >
+
+            <h2>
+                Profile Not Found
+            </h2>
+
+            <p id="errorMessage">
+                The requested profile could not be found.
+            </p>
+
+            <a
+                href="/"
+                class="back"
+            >
+                ← All Profiles
+            </a>
+
+        </section>
+
+
+        <!-- ==============================
+             PROFILE
+        =============================== -->
+
+        <section
+            id="profile"
+            class="profile hidden"
+        >
+
+            <img
+                id="profileImage"
+                class="profile-image"
+                src=""
+                alt=""
+            >
+
+
+            <h1 id="profileName"></h1>
+
+
+            <span
+                id="profileRole"
+                class="role"
+            ></span>
+
+
+            <p
+                id="profileBio"
+                class="bio"
+            ></p>
+
+
+            <a
+                id="profileEmail"
+                class="email"
+                href=""
+            ></a>
+
+
+            <div
+                id="profileId"
+                class="profile-id"
+            ></div>
+
+
+            <div
+                id="profileUrl"
+                class="profile-url"
+            ></div>
+
+
+            <a
+                href="/"
+                class="back"
+            >
+                ← All Profiles
+            </a>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        async function loadProfile() {
+
+            const loading =
+                document.getElementById("loading");
+
+            const profile =
+                document.getElementById("profile");
+
+            const error =
+                document.getElementById("error");
+
+            const errorMessage =
+                document.getElementById(
+                    "errorMessage"
+                );
+
+
+            try {
+
+                /*
+                 * ==========================================
+                 * DIRECT PROFILE URL
+                 * ==========================================
+                 *
+                 * /team/amit-kumar
+                 * /user/priya-singh
+                 * /founder/susheel-kumar
+                 *
+                 * NO:
+                 * ?id=amit-kumar
+                 *
+                 */
+
+
+                const pathParts =
+                    window.location.pathname
+                        .split("/")
+                        .filter(Boolean);
+
+
+                /*
+                 * ==========================================
+                 * GET ROLE + ID
+                 * ==========================================
+                 */
+
+                if (
+                    pathParts.length !== 2
+                ) {
+
+                    throw new Error(
+                        "Invalid profile URL."
+                    );
+
+                }
+
+
+                const urlRole =
+                    decodeURIComponent(
+                        pathParts[0]
+                    )
+                    .toLowerCase()
+                    .trim();
+
+
+                const profileId =
+                    decodeURIComponent(
+                        pathParts[1]
+                    )
+                    .trim();
+
+
+                /*
+                 * ==========================================
+                 * VALID ROLES
+                 * ==========================================
+                 */
+
+                const validRoles = [
+                    "founder",
+                    "team",
+                    "user"
+                ];
+
+
+                if (
+                    !validRoles.includes(
+                        urlRole
+                    )
+                ) {
+
+                    throw new Error(
+                        "Invalid profile role."
+                    );
+
+                }
+
+
+                if (!profileId) {
+
+                    throw new Error(
+                        "Profile ID is missing."
+                    );
+
+                }
+
+
+                /*
+                 * ==========================================
+                 * LOAD MAIN.JSON
+                 * ==========================================
+                 */
+
+                const mainResponse =
+                    await fetch(
+                        "/assets/JSON/main.json",
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                if (!mainResponse.ok) {
+
+                    throw new Error(
+                        "main.json could not be loaded."
+                    );
+
+                }
+
+
+                const main =
+                    await mainResponse.json();
+
+
+                if (
+                    !main.profiles ||
+                    !Array.isArray(
+                        main.profiles
+                    )
+                ) {
+
+                    throw new Error(
+                        "Invalid main.json structure."
+                    );
+
+                }
+
+
+                /*
+                 * ==========================================
+                 * FIND PROFILE
+                 * ==========================================
+                 */
+
+                let user = null;
+
+                let profileReference = null;
+
+
+                for (
+                    const item of main.profiles
+                ) {
+
+                    if (!item.file) {
+                        continue;
+                    }
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                "/assets/JSON/" +
+                                item.file,
+                                {
+                                    cache: "no-store"
+                                }
+                            );
+
+
+                        if (!response.ok) {
+                            continue;
+                        }
+
+
+                        const data =
+                            await response.json();
+
+
+                        const dataId =
+                            String(
+                                data.id || ""
+                            )
+                            .trim();
+
+
+                        const dataRole =
+                            String(
+                                data.role ||
+                                item.type ||
+                                "user"
+                            )
+                            .toLowerCase()
+                            .trim();
+
+
+                        /*
+                         * ROLE + ID BOTH MATCH
+                         */
+
+                        if (
+                            dataId === profileId &&
+                            dataRole === urlRole
+                        ) {
+
+                            user = data;
+
+                            profileReference =
+                                item;
+
+                            break;
+
+                        }
+
+                    } catch (
+                        fileError
+                    ) {
+
+                        console.warn(
+                            "Could not load profile:",
+                            item.file,
+                            fileError
+                        );
+
+                    }
+
+                }
+
+
+                /*
+                 * ==========================================
+                 * PROFILE NOT FOUND
+                 * ==========================================
+                 */
+
+                if (!user) {
+
+                    throw new Error(
+                        "Profile not found."
+                    );
+
+                }
+
+
+                /*
+                 * ==========================================
+                 * PROFILE DATA
+                 * ==========================================
+                 */
+
+                const name =
+                    user.name ||
+                    "Unknown User";
+
+
+                const role =
+                    String(
+                        user.role ||
+                        profileReference?.type ||
+                        urlRole
+                    )
+                    .toLowerCase()
+                    .trim();
+
+
+                const roleTitle =
+                    role.charAt(0).toUpperCase() +
+                    role.slice(1);
+
+
+                const bio =
+                    user.bio || "";
+
+
+                const email =
+                    user.email || "";
+
+
+                const image =
+                    user.image || "";
+
+
+                const id =
+                    user.id ||
+                    profileId;
+
+
+                /*
+                 * ==========================================
+                 * PROFILE URL
+                 * ==========================================
+                 */
+
+                const profileUrl =
+                    `/${encodeURIComponent(role)}/${encodeURIComponent(id)}`;
+
+
+                /*
+                 * ==========================================
+                 * SEO
+                 * ==========================================
+                 */
+
+                document.title =
+                    `${name} | ${roleTitle} | HaproID`;
+
+
+                const description =
+                    bio ||
+                    `${name} is a ${roleTitle} profile on HaproID.`;
+
+
+                let metaDescription =
+                    document.querySelector(
+                        'meta[name="description"]'
+                    );
+
+
+                if (!metaDescription) {
+
+                    metaDescription =
+                        document.createElement(
+                            "meta"
+                        );
+
+                    metaDescription.name =
+                        "description";
+
+                    document.head.appendChild(
+                        metaDescription
+                    );
+
+                }
+
+
+                metaDescription.content =
+                    description;
+
+
+                /*
+                 * ==========================================
+                 * DISPLAY NAME
+                 * ==========================================
+                 */
+
+                document
+                    .getElementById(
+                        "profileName"
+                    )
+                    .textContent = name;
+
+
+                /*
+                 * ==========================================
+                 * DISPLAY ROLE
+                 * ==========================================
+                 */
+
+                document
+                    .getElementById(
+                        "profileRole"
+                    )
+                    .textContent =
+                    roleTitle;
+
+
+                /*
+                 * ==========================================
+                 * DISPLAY BIO
+                 * ==========================================
+                 */
+
+                document
+                    .getElementById(
+                        "profileBio"
+                    )
+                    .textContent = bio;
+
+
+                /*
+                 * ==========================================
+                 * DISPLAY ID
+                 * ==========================================
+                 */
+
+                document
+                    .getElementById(
+                        "profileId"
+                    )
+                    .textContent =
+                    `Profile ID: ${id}`;
+
+
+                /*
+                 * ==========================================
+                 * DISPLAY URL
+                 * ==========================================
+                 */
+
+                document
+                    .getElementById(
+                        "profileUrl"
+                    )
+                    .textContent =
+                    profileUrl;
+
+
+                /*
+                 * ==========================================
+                 * IMAGE
+                 * ==========================================
+                 */
+
+                const imageElement =
+                    document.getElementById(
+                        "profileImage"
+                    );
+
+
+                if (image) {
+
+                    imageElement.src =
+                        image;
+
+                    imageElement.alt =
+                        name;
+
+                    imageElement.classList.remove(
+                        "hidden"
+                    );
+
+                } else {
+
+                    imageElement.classList.add(
+                        "hidden"
+                    );
+
+                }
+
+
+                /*
+                 * ==========================================
+                 * EMAIL
+                 * ==========================================
+                 */
+
+                const emailElement =
+                    document.getElementById(
+                        "profileEmail"
+                    );
+
+
+                if (email) {
+
+                    emailElement.href =
+                        `mailto:${email}`;
+
+                    emailElement.textContent =
+                        email;
+
+                    emailElement.classList.remove(
+                        "hidden"
+                    );
+
+                } else {
+
+                    emailElement.classList.add(
+                        "hidden"
+                    );
+
+                }
+
+
+                /*
+                 * ==========================================
+                 * SHOW PROFILE
+                 * ==========================================
+                 */
+
+                loading.classList.add(
+                    "hidden"
+                );
+
+                error.classList.add(
+                    "hidden"
+                );
+
+                profile.classList.remove(
+                    "hidden"
+                );
+
+
+            } catch (err) {
+
+                console.error(
+                    "❌ Profile error:",
+                    err
+                );
+
+
+                loading.classList.add(
+                    "hidden"
+                );
+
+                profile.classList.add(
+                    "hidden"
+                );
+
+                error.classList.remove(
+                    "hidden"
+                );
+
+
+                errorMessage.textContent =
+                    err.message;
+
+            }
+
+        }
+
+
+        /*
+         * ==========================================
+         * START
+         * ==========================================
+         */
+
+        loadProfile();
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+{
+  "profiles": [
+    {
+      "type": "user",
+      "file": "user/amit.json"
+    },
+    {
+      "type": "user",
+      "file": "user/priya.json"
+    },
+    {
+      "type": "team",
+      "file": "Team/yashika.json"
+    }
+  ]
+}

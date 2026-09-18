@@ -1,0 +1,57 @@
+
+
+
+
+
+|---assets/
+|        |
+|        |---JS
+|        |   |--build.js
+|        |
+|        |---JSON
+|        |    |-main.json
+|        |    |-user
+|        |    |   |-amit.json
+|        |    |   |-priya.json
+|        |    |   
+|        |    |   
+|        |    |-Team
+|        |    |   |-yashika.json
+|        |    |
+|        |    |
+|        |    |-Team
+|        |    |   |-yashika.json
+|
+|---index.html //main profile card format 
+|      phir next bnate hai 
+
+
+
+
+
+
+
+
+
+/
+├── index.html
+├── profile.html
+├── server.js
+│
+└── assets/
+    ├── JS/
+    │   └── build.js
+    │
+    └── JSON/
+        ├── main.json
+        │
+        ├── user/
+        │   ├── amit.json
+        │   └── priya.json
+        │
+        └── Team/
+            └── yashika.json
+
+
+
+
