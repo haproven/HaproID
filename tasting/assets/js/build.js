@@ -320,3 +320,213 @@ function escapeHTML(value) {
             "&#039;"
         );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadProfiles
+);
+
+
+async function loadProfiles() {
+
+    const container =
+        document.getElementById(
+            "profiles"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    try {
+
+        container.innerHTML =
+            "<p>Loading profiles...</p>";
+
+        const response =
+            await fetch(
+                "/api/profiles",
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+
+        }
+
+        const result =
+            await response.json();
+
+        if (
+            !result.success ||
+            !Array.isArray(
+                result.profiles
+            )
+        ) {
+
+            throw new Error(
+                "Invalid API response."
+            );
+
+        }
+
+        container.innerHTML = "";
+
+        if (
+            result.profiles.length === 0
+        ) {
+
+            container.innerHTML = `
+                <div class="error">
+                    <h3>No profiles found.</h3>
+                    <p>MongoDB collection is empty.</p>
+                </div>
+            `;
+
+            return;
+        }
+
+        for (
+            const user of result.profiles
+        ) {
+
+            const id =
+                String(
+                    user.id || ""
+                ).trim();
+
+            const name =
+                user.name ||
+                "Unknown User";
+
+            const role =
+                String(
+                    user.role ||
+                    "user"
+                )
+                .toLowerCase()
+                .trim();
+
+            const bio =
+                user.bio || "";
+
+            const image =
+                user.image || "";
+
+            if (!id) {
+                continue;
+            }
+
+            const profileUrl =
+                `/${encodeURIComponent(role)}/${encodeURIComponent(id)}`;
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+            card.className =
+                "card";
+
+            card.innerHTML = `
+
+                ${
+                    image
+                        ? `
+                            <img
+                                src="${escapeHTML(image)}"
+                                alt="${escapeHTML(name)}"
+                                loading="lazy"
+                            >
+                        `
+                        : ""
+                }
+
+                <h2>
+                    ${escapeHTML(name)}
+                </h2>
+
+                <span class="role">
+                    ${escapeHTML(role)}
+                </span>
+
+                <p class="bio">
+                    ${escapeHTML(bio)}
+                </p>
+
+                <a
+                    class="profile-link"
+                    href="${profileUrl}"
+                >
+                    View Profile
+                </a>
+
+            `;
+
+            container.appendChild(
+                card
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "❌ Profile loading error:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="error">
+                <h3>Failed to load profiles.</h3>
+                <p>
+                    ${escapeHTML(
+                        error.message
+                    )}
+                </p>
+            </div>
+        `;
+    }
+}
+
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}

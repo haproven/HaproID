@@ -243,549 +243,312 @@
     </main>
 
 
-    <script>
+<script>
+async function loadProfile() {
 
-        async function loadProfile() {
+    const loading =
+        document.getElementById(
+            "loading"
+        );
 
-            const loading =
-                document.getElementById("loading");
+    const profile =
+        document.getElementById(
+            "profile"
+        );
 
-            const profile =
-                document.getElementById("profile");
+    const error =
+        document.getElementById(
+            "error"
+        );
 
-            const error =
-                document.getElementById("error");
+    const errorMessage =
+        document.getElementById(
+            "errorMessage"
+        );
 
-            const errorMessage =
-                document.getElementById(
-                    "errorMessage"
+    try {
+
+        const pathParts =
+            window.location.pathname
+                .split("/")
+                .filter(Boolean);
+
+        if (
+            pathParts.length !== 2
+        ) {
+
+            throw new Error(
+                "Invalid profile URL."
+            );
+
+        }
+
+        const role =
+            decodeURIComponent(
+                pathParts[0]
+            )
+            .toLowerCase()
+            .trim();
+
+        const id =
+            decodeURIComponent(
+                pathParts[1]
+            )
+            .trim();
+
+        const validRoles = [
+            "founder",
+            "team",
+            "user"
+        ];
+
+        if (
+            !validRoles.includes(role)
+        ) {
+
+            throw new Error(
+                "Invalid profile role."
+            );
+
+        }
+
+        const response =
+            await fetch(
+                `/api/profiles/${encodeURIComponent(role)}/${encodeURIComponent(id)}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            if (
+                response.status === 404
+            ) {
+
+                throw new Error(
+                    "Profile not found."
                 );
-
-
-            try {
-
-                /*
-                 * ==========================================
-                 * DIRECT PROFILE URL
-                 * ==========================================
-                 *
-                 * /team/amit-kumar
-                 * /user/priya-singh
-                 * /founder/susheel-kumar
-                 *
-                 * NO:
-                 * ?id=amit-kumar
-                 *
-                 */
-
-
-                const pathParts =
-                    window.location.pathname
-                        .split("/")
-                        .filter(Boolean);
-
-
-                /*
-                 * ==========================================
-                 * GET ROLE + ID
-                 * ==========================================
-                 */
-
-                if (
-                    pathParts.length !== 2
-                ) {
-
-                    throw new Error(
-                        "Invalid profile URL."
-                    );
-
-                }
-
-
-                const urlRole =
-                    decodeURIComponent(
-                        pathParts[0]
-                    )
-                    .toLowerCase()
-                    .trim();
-
-
-                const profileId =
-                    decodeURIComponent(
-                        pathParts[1]
-                    )
-                    .trim();
-
-
-                /*
-                 * ==========================================
-                 * VALID ROLES
-                 * ==========================================
-                 */
-
-                const validRoles = [
-                    "founder",
-                    "team",
-                    "user"
-                ];
-
-
-                if (
-                    !validRoles.includes(
-                        urlRole
-                    )
-                ) {
-
-                    throw new Error(
-                        "Invalid profile role."
-                    );
-
-                }
-
-
-                if (!profileId) {
-
-                    throw new Error(
-                        "Profile ID is missing."
-                    );
-
-                }
-
-
-                /*
-                 * ==========================================
-                 * LOAD MAIN.JSON
-                 * ==========================================
-                 */
-
-                const mainResponse =
-                    await fetch(
-                        "/assets/JSON/main.json",
-                        {
-                            cache: "no-store"
-                        }
-                    );
-
-
-                if (!mainResponse.ok) {
-
-                    throw new Error(
-                        "main.json could not be loaded."
-                    );
-
-                }
-
-
-                const main =
-                    await mainResponse.json();
-
-
-                if (
-                    !main.profiles ||
-                    !Array.isArray(
-                        main.profiles
-                    )
-                ) {
-
-                    throw new Error(
-                        "Invalid main.json structure."
-                    );
-
-                }
-
-
-                /*
-                 * ==========================================
-                 * FIND PROFILE
-                 * ==========================================
-                 */
-
-                let user = null;
-
-                let profileReference = null;
-
-
-                for (
-                    const item of main.profiles
-                ) {
-
-                    if (!item.file) {
-                        continue;
-                    }
-
-
-                    try {
-
-                        const response =
-                            await fetch(
-                                "/assets/JSON/" +
-                                item.file,
-                                {
-                                    cache: "no-store"
-                                }
-                            );
-
-
-                        if (!response.ok) {
-                            continue;
-                        }
-
-
-                        const data =
-                            await response.json();
-
-
-                        const dataId =
-                            String(
-                                data.id || ""
-                            )
-                            .trim();
-
-
-                        const dataRole =
-                            String(
-                                data.role ||
-                                item.type ||
-                                "user"
-                            )
-                            .toLowerCase()
-                            .trim();
-
-
-                        /*
-                         * ROLE + ID BOTH MATCH
-                         */
-
-                        if (
-                            dataId === profileId &&
-                            dataRole === urlRole
-                        ) {
-
-                            user = data;
-
-                            profileReference =
-                                item;
-
-                            break;
-
-                        }
-
-                    } catch (
-                        fileError
-                    ) {
-
-                        console.warn(
-                            "Could not load profile:",
-                            item.file,
-                            fileError
-                        );
-
-                    }
-
-                }
-
-
-                /*
-                 * ==========================================
-                 * PROFILE NOT FOUND
-                 * ==========================================
-                 */
-
-                if (!user) {
-
-                    throw new Error(
-                        "Profile not found."
-                    );
-
-                }
-
-
-                /*
-                 * ==========================================
-                 * PROFILE DATA
-                 * ==========================================
-                 */
-
-                const name =
-                    user.name ||
-                    "Unknown User";
-
-
-                const role =
-                    String(
-                        user.role ||
-                        profileReference?.type ||
-                        urlRole
-                    )
-                    .toLowerCase()
-                    .trim();
-
-
-                const roleTitle =
-                    role.charAt(0).toUpperCase() +
-                    role.slice(1);
-
-
-                const bio =
-                    user.bio || "";
-
-
-                const email =
-                    user.email || "";
-
-
-                const image =
-                    user.image || "";
-
-
-                const id =
-                    user.id ||
-                    profileId;
-
-
-                /*
-                 * ==========================================
-                 * PROFILE URL
-                 * ==========================================
-                 */
-
-                const profileUrl =
-                    `/${encodeURIComponent(role)}/${encodeURIComponent(id)}`;
-
-
-                /*
-                 * ==========================================
-                 * SEO
-                 * ==========================================
-                 */
-
-                document.title =
-                    `${name} | ${roleTitle} | HaproID`;
-
-
-                const description =
-                    bio ||
-                    `${name} is a ${roleTitle} profile on HaproID.`;
-
-
-                let metaDescription =
-                    document.querySelector(
-                        'meta[name="description"]'
-                    );
-
-
-                if (!metaDescription) {
-
-                    metaDescription =
-                        document.createElement(
-                            "meta"
-                        );
-
-                    metaDescription.name =
-                        "description";
-
-                    document.head.appendChild(
-                        metaDescription
-                    );
-
-                }
-
-
-                metaDescription.content =
-                    description;
-
-
-                /*
-                 * ==========================================
-                 * DISPLAY NAME
-                 * ==========================================
-                 */
-
-                document
-                    .getElementById(
-                        "profileName"
-                    )
-                    .textContent = name;
-
-
-                /*
-                 * ==========================================
-                 * DISPLAY ROLE
-                 * ==========================================
-                 */
-
-                document
-                    .getElementById(
-                        "profileRole"
-                    )
-                    .textContent =
-                    roleTitle;
-
-
-                /*
-                 * ==========================================
-                 * DISPLAY BIO
-                 * ==========================================
-                 */
-
-                document
-                    .getElementById(
-                        "profileBio"
-                    )
-                    .textContent = bio;
-
-
-                /*
-                 * ==========================================
-                 * DISPLAY ID
-                 * ==========================================
-                 */
-
-                document
-                    .getElementById(
-                        "profileId"
-                    )
-                    .textContent =
-                    `Profile ID: ${id}`;
-
-
-                /*
-                 * ==========================================
-                 * DISPLAY URL
-                 * ==========================================
-                 */
-
-                document
-                    .getElementById(
-                        "profileUrl"
-                    )
-                    .textContent =
-                    profileUrl;
-
-
-                /*
-                 * ==========================================
-                 * IMAGE
-                 * ==========================================
-                 */
-
-                const imageElement =
-                    document.getElementById(
-                        "profileImage"
-                    );
-
-
-                if (image) {
-
-                    imageElement.src =
-                        image;
-
-                    imageElement.alt =
-                        name;
-
-                    imageElement.classList.remove(
-                        "hidden"
-                    );
-
-                } else {
-
-                    imageElement.classList.add(
-                        "hidden"
-                    );
-
-                }
-
-
-                /*
-                 * ==========================================
-                 * EMAIL
-                 * ==========================================
-                 */
-
-                const emailElement =
-                    document.getElementById(
-                        "profileEmail"
-                    );
-
-
-                if (email) {
-
-                    emailElement.href =
-                        `mailto:${email}`;
-
-                    emailElement.textContent =
-                        email;
-
-                    emailElement.classList.remove(
-                        "hidden"
-                    );
-
-                } else {
-
-                    emailElement.classList.add(
-                        "hidden"
-                    );
-
-                }
-
-
-                /*
-                 * ==========================================
-                 * SHOW PROFILE
-                 * ==========================================
-                 */
-
-                loading.classList.add(
-                    "hidden"
-                );
-
-                error.classList.add(
-                    "hidden"
-                );
-
-                profile.classList.remove(
-                    "hidden"
-                );
-
-
-            } catch (err) {
-
-                console.error(
-                    "❌ Profile error:",
-                    err
-                );
-
-
-                loading.classList.add(
-                    "hidden"
-                );
-
-                profile.classList.add(
-                    "hidden"
-                );
-
-                error.classList.remove(
-                    "hidden"
-                );
-
-
-                errorMessage.textContent =
-                    err.message;
 
             }
+
+            throw new Error(
+                `Server error: ${response.status}`
+            );
+
+        }
+
+        const result =
+            await response.json();
+
+        if (
+            !result.success ||
+            !result.profile
+        ) {
+
+            throw new Error(
+                "Invalid profile response."
+            );
+
+        }
+
+        const user =
+            result.profile;
+
+        const name =
+            user.name ||
+            "Unknown User";
+
+        const profileRole =
+            String(
+                user.role ||
+                role
+            )
+            .toLowerCase()
+            .trim();
+
+        const roleTitle =
+            profileRole
+                .charAt(0)
+                .toUpperCase() +
+            profileRole.slice(1);
+
+        const bio =
+            user.bio || "";
+
+        const email =
+            user.email || "";
+
+        const image =
+            user.image || "";
+
+        const profileId =
+            user.id || id;
+
+
+        /*
+         * SEO
+         */
+
+        document.title =
+            `${name} | ${roleTitle} | HaproID`;
+
+        const description =
+            bio ||
+            `${name} is a ${roleTitle} profile on HaproID.`;
+
+        let meta =
+            document.querySelector(
+                'meta[name="description"]'
+            );
+
+        if (!meta) {
+
+            meta =
+                document.createElement(
+                    "meta"
+                );
+
+            meta.name =
+                "description";
+
+            document.head.appendChild(
+                meta
+            );
+
+        }
+
+        meta.content =
+            description;
+
+
+        /*
+         * Profile UI
+         */
+
+        document.getElementById(
+            "profileName"
+        ).textContent = name;
+
+        document.getElementById(
+            "profileRole"
+        ).textContent =
+            roleTitle;
+
+        document.getElementById(
+            "profileBio"
+        ).textContent =
+            bio;
+
+        document.getElementById(
+            "profileId"
+        ).textContent =
+            `Profile ID: ${profileId}`;
+
+
+        /*
+         * Image
+         */
+
+        const imageElement =
+            document.getElementById(
+                "profileImage"
+            );
+
+        if (image) {
+
+            imageElement.src =
+                image;
+
+            imageElement.alt =
+                name;
+
+            imageElement.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            imageElement.classList.add(
+                "hidden"
+            );
 
         }
 
 
         /*
-         * ==========================================
-         * START
-         * ==========================================
+         * Email
          */
 
-        loadProfile();
+        const emailElement =
+            document.getElementById(
+                "profileEmail"
+            );
 
-    </script>
+        if (email) {
+
+            emailElement.href =
+                `mailto:${email}`;
+
+            emailElement.textContent =
+                email;
+
+            emailElement.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            emailElement.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        /*
+         * Show
+         */
+
+        loading.classList.add(
+            "hidden"
+        );
+
+        error.classList.add(
+            "hidden"
+        );
+
+        profile.classList.remove(
+            "hidden"
+        );
+
+    } catch (err) {
+
+        console.error(
+            "❌ Profile error:",
+            err
+        );
+
+        loading.classList.add(
+            "hidden"
+        );
+
+        profile.classList.add(
+            "hidden"
+        );
+
+        error.classList.remove(
+            "hidden"
+        );
+
+        errorMessage.textContent =
+            err.message;
+
+    }
+}
+
+loadProfile();
+</script>
 
 </body>
 

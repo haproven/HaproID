@@ -1,131 +1,668 @@
+require("dotenv").config();
+
 const express = require("express");
 const path = require("path");
+const {
+    MongoClient,
+    ServerApiVersion
+} = require("mongodb");
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-/*
- * Root directory
- */
-const ROOT_DIR = __dirname;
+const MONGODB_URI = process.env.MONGODB_URI;
+const DATABASE_NAME =
+    process.env.MONGODB_DB || "haproid";
 
-/*
- * Static files
- *
- * index.html
- * profile.html
- * assets/
- */
-app.use(
-    express.static(ROOT_DIR)
+if (!MONGODB_URI) {
+    console.error("❌ MONGODB_URI is missing in .env");
+    process.exit(1);
+}
+
+const client = new MongoClient(
+    MONGODB_URI,
+    {
+        serverApi: {
+            version: ServerApiVersion.v1,
+            strict: true,
+            deprecationErrors: true
+        }
+    }
 );
 
+let db;
+let profilesCollection;
+
+
 /*
- * Home page
+ * Middleware
  */
-app.get("/", (req, res) => {
 
-    res.sendFile(
-        path.join(ROOT_DIR, "index.html")
-    );
+app.use(express.json());
 
-});
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+);
+
 
 /*
- * Clean profile URLs
+ * Static frontend files
+ */
+
+app.use(
+    express.static(__dirname)
+);
+
+
+/*
+ * Connect MongoDB
+ */
+
+async function connectDatabase() {
+
+    try {
+
+        await client.connect();
+
+        await client
+            .db("admin")
+            .command({
+                ping: 1
+            });
+
+        db = client.db(
+            DATABASE_NAME
+        );
+
+        profilesCollection =
+            db.collection("profiles");
+
+        console.log(
+            "✅ MongoDB connected successfully"
+        );
+
+        console.log(
+            `📦 Database: ${DATABASE_NAME}`
+        );
+
+        console.log(
+            "📁 Collection: profiles"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "❌ MongoDB connection failed:"
+        );
+
+        console.error(
+            error
+        );
+
+        process.exit(1);
+    }
+}
+
+
+/*
+ * Database middleware
+ */
+
+function requireDatabase(
+    req,
+    res,
+    next
+) {
+
+    if (!profilesCollection) {
+
+        return res.status(503).json({
+            success: false,
+            message:
+                "Database is not connected."
+        });
+
+    }
+
+    next();
+}
+
+
+/*
+ * Home
+ */
+
+app.get(
+    "/",
+    (req, res) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "index.html"
+            )
+        );
+
+    }
+);
+
+
+/*
+ * API health check
+ */
+
+app.get(
+    "/api/health",
+    (req, res) => {
+
+        res.json({
+            success: true,
+            server: "Node.js + Express",
+            database:
+                profilesCollection
+                    ? "MongoDB connected"
+                    : "MongoDB disconnected"
+        });
+
+    }
+);
+
+
+/*
+ * GET all profiles
+ */
+
+app.get(
+    "/api/profiles",
+    requireDatabase,
+    async (req, res) => {
+
+        try {
+
+            const profiles =
+                await profilesCollection
+                    .find({})
+                    .sort({
+                        name: 1
+                    })
+                    .toArray();
+
+            res.json({
+                success: true,
+                count: profiles.length,
+                profiles
+            });
+
+        } catch (error) {
+
+            console.error(
+                "GET /api/profiles error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Failed to fetch profiles."
+            });
+
+        }
+
+    }
+);
+
+
+/*
+ * GET profile by role + id
  *
- * /user/amit
- * /user/priya
- * /team/yashika
+ * Example:
+ * /api/profiles/user/amit-kumar
+ */
+
+app.get(
+    "/api/profiles/:role/:id",
+    requireDatabase,
+    async (req, res) => {
+
+        try {
+
+            const role =
+                String(
+                    req.params.role
+                )
+                .toLowerCase()
+                .trim();
+
+            const id =
+                String(
+                    req.params.id
+                )
+                .trim();
+
+            const profile =
+                await profilesCollection
+                    .findOne({
+                        id: id,
+                        role: role
+                    });
+
+            if (!profile) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Profile not found."
+                });
+
+            }
+
+            res.json({
+                success: true,
+                profile
+            });
+
+        } catch (error) {
+
+            console.error(
+                "GET profile error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Failed to fetch profile."
+            });
+
+        }
+
+    }
+);
+
+
+/*
+ * POST new profile
+ */
+
+app.post(
+    "/api/profiles",
+    requireDatabase,
+    async (req, res) => {
+
+        try {
+
+            const {
+                id,
+                name,
+                role,
+                bio,
+                email,
+                image
+            } = req.body;
+
+            if (
+                !id ||
+                !name ||
+                !role
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "id, name and role are required."
+                });
+
+            }
+
+            const normalizedRole =
+                String(role)
+                    .toLowerCase()
+                    .trim();
+
+            const normalizedId =
+                String(id)
+                    .toLowerCase()
+                    .trim();
+
+            const existing =
+                await profilesCollection
+                    .findOne({
+                        id: normalizedId,
+                        role: normalizedRole
+                    });
+
+            if (existing) {
+
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        "Profile already exists."
+                });
+
+            }
+
+            const profile = {
+                id: normalizedId,
+                name: String(name).trim(),
+                role: normalizedRole,
+                bio: bio || "",
+                email: email || "",
+                image: image || "",
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            const result =
+                await profilesCollection
+                    .insertOne(profile);
+
+            res.status(201).json({
+                success: true,
+                message:
+                    "Profile created successfully.",
+                profile: {
+                    _id: result.insertedId,
+                    ...profile
+                }
+            });
+
+        } catch (error) {
+
+            console.error(
+                "POST /api/profiles error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Failed to create profile."
+            });
+
+        }
+
+    }
+);
+
+
+/*
+ * PUT update profile
+ */
+
+app.put(
+    "/api/profiles/:role/:id",
+    requireDatabase,
+    async (req, res) => {
+
+        try {
+
+            const role =
+                String(
+                    req.params.role
+                )
+                .toLowerCase()
+                .trim();
+
+            const id =
+                String(
+                    req.params.id
+                )
+                .trim();
+
+            const allowedFields = [
+                "name",
+                "bio",
+                "email",
+                "image"
+            ];
+
+            const updateData = {};
+
+            for (
+                const field of allowedFields
+            ) {
+
+                if (
+                    req.body[field] !==
+                    undefined
+                ) {
+
+                    updateData[field] =
+                        req.body[field];
+
+                }
+
+            }
+
+            updateData.updatedAt =
+                new Date();
+
+            const result =
+                await profilesCollection
+                    .updateOne(
+                        {
+                            id: id,
+                            role: role
+                        },
+                        {
+                            $set: updateData
+                        }
+                    );
+
+            if (
+                result.matchedCount === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Profile not found."
+                });
+
+            }
+
+            const updatedProfile =
+                await profilesCollection
+                    .findOne({
+                        id: id,
+                        role: role
+                    });
+
+            res.json({
+                success: true,
+                message:
+                    "Profile updated successfully.",
+                profile:
+                    updatedProfile
+            });
+
+        } catch (error) {
+
+            console.error(
+                "PUT profile error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Failed to update profile."
+            });
+
+        }
+
+    }
+);
+
+
+/*
+ * DELETE profile
+ */
+
+app.delete(
+    "/api/profiles/:role/:id",
+    requireDatabase,
+    async (req, res) => {
+
+        try {
+
+            const role =
+                String(
+                    req.params.role
+                )
+                .toLowerCase()
+                .trim();
+
+            const id =
+                String(
+                    req.params.id
+                )
+                .trim();
+
+            const result =
+                await profilesCollection
+                    .deleteOne({
+                        id: id,
+                        role: role
+                    });
+
+            if (
+                result.deletedCount === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Profile not found."
+                });
+
+            }
+
+            res.json({
+                success: true,
+                message:
+                    "Profile deleted successfully."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "DELETE profile error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Failed to delete profile."
+            });
+
+        }
+
+    }
+);
+
+
+/*
+ * Clean profile URL
+ *
+ * /user/amit-kumar
+ * /team/yashika-son
  * /founder/susheel
  */
 
-app.get("/:role/:id", (req, res, next) => {
+app.get(
+    "/:role/:id",
+    (req, res, next) => {
 
-    const role =
-        String(req.params.role || "")
+        const role =
+            String(
+                req.params.role || ""
+            )
             .toLowerCase()
             .trim();
 
-    const id =
-        String(req.params.id || "")
+        const id =
+            String(
+                req.params.id || ""
+            )
             .trim();
 
-    const validRoles = [
-        "founder",
-        "team",
-        "user"
-    ];
+        const validRoles = [
+            "founder",
+            "team",
+            "user"
+        ];
 
-    /*
-     * If URL is not a profile URL,
-     * continue to other Express routes.
-     */
+        if (
+            !validRoles.includes(role) ||
+            !id
+        ) {
 
-    if (!validRoles.includes(role)) {
-        return next();
+            return next();
+
+        }
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "profile.html"
+            )
+        );
+
     }
+);
 
-    if (!id) {
-        return next();
-    }
-
-    /*
-     * Serve the same profile.html
-     *
-     * profile.html itself reads:
-     *
-     * /user/amit
-     * /team/yashika
-     */
-
-    res.sendFile(
-        path.join(
-            ROOT_DIR,
-            "profile.html"
-        )
-    );
-
-});
 
 /*
- * 404
+ * 404 API
  */
 
-app.use((req, res) => {
+app.use(
+    "/api",
+    (req, res) => {
 
-    res.status(404).send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport"
-                content="width=device-width, initial-scale=1.0">
-            <title>404 | Not Found</title>
-        </head>
-        <body>
-            <h1>404 - Page Not Found</h1>
-            <p>The requested page does not exist.</p>
-            <a href="/">Go Home</a>
-        </body>
-        </html>
-    `);
+        res.status(404).json({
+            success: false,
+            message:
+                "API endpoint not found."
+        });
 
-});
+    }
+);
+
 
 /*
- * Start server
+ * Start
  */
 
-app.listen(PORT, () => {
+async function startServer() {
 
-    console.log(
-        `🚀 Profile server running on port ${PORT}`
+    await connectDatabase();
+
+    app.listen(
+        PORT,
+        () => {
+
+            console.log("");
+            console.log(
+                "🚀 HaproID server started"
+            );
+
+            console.log(
+                `🌐 http://localhost:${PORT}`
+            );
+
+            console.log(
+                `❤️ API: http://localhost:${PORT}/api/health`
+            );
+
+        }
     );
 
-    console.log(
-        `🌐 http://localhost:${PORT}`
-    );
+}
 
-});
+startServer();
