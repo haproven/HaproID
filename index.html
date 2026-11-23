@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#2563eb">
     <title>HaproID API</title>
-    <meta name="description" content="HaproID public API for accessing structured profile directory data.">
+    <meta name="description" content="Access public HaproID profile directory data using the HaproID JSON API.">
+
     <style>
         * {
             box-sizing: border-box;
@@ -15,18 +16,18 @@
         }
 
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
+            font-family: system-ui, sans-serif;
             line-height: 1.6;
+            background: #fff;
+            color: #111827;
         }
 
         .container {
-            width: min(900px, 92%);
+            width: min(800px, 92%);
             margin: auto;
         }
 
-        header {
+        header, footer {
             border-bottom: 1px solid #e2e8f0;
             background: #fff;
         }
@@ -39,143 +40,203 @@
         }
 
         .brand {
-            font-size: 19px;
             font-weight: 700;
+            font-size: 19px;
         }
 
         .brand span {
             color: #2563eb;
         }
 
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
         .nav a {
             color: #64748b;
-            text-decoration: none;
             font-size: 14px;
         }
 
         main {
-            padding: 65px 0;
+            padding: 45px 0;
         }
 
         .label {
             color: #2563eb;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
-            letter-spacing: 1px;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         h1 {
-            font-size: clamp(30px, 5vw, 46px);
-            line-height: 1.2;
-            margin: 12px 0;
+            font-size: clamp(30px, 5vw, 42px);
+            margin: 10px 0;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        h3 {
+            font-size: 16px;
+        }
+
+        .intro, .info {
+            color: #64748b;
+            font-size: 14px;
         }
 
         .intro {
-            color: #64748b;
-            max-width: 600px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .status {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            color: #15803d;
             margin-bottom: 25px;
+            color: #64748b;
         }
 
         .dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #22c55e;
+            background: #94a3b8;
         }
 
         .card {
-            background: white;
+            background: #fff;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 22px;
-            margin-bottom: 22px;
-        }
-
-        .card h2 {
-            font-size: 17px;
-            margin-bottom: 12px;
+            padding: 20px;
+            margin-bottom: 18px;
         }
 
         .endpoint {
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: #f1f5f9;
+            gap: 10px;
             padding: 12px;
             border-radius: 8px;
-            overflow-wrap: anywhere;
+            margin-top: 12px;
+            background: #f8fafc;
         }
 
         .method {
-            background: #dcfce7;
             color: #15803d;
-            padding: 4px 9px;
-            border-radius: 5px;
+            padding: 4px 8px;
             font-size: 12px;
             font-weight: 700;
+            border-radius: 5px;
+            background: #f0fdf4;
         }
 
         .endpoint code {
-            font-size: 13px;
             flex: 1;
+            font-size: 12px;
+            overflow-wrap: anywhere;
         }
 
         button {
             border: 1px solid #cbd5e1;
-            background: white;
-            padding: 7px 12px;
+            background: #fff;
+            color: #111827;
+            padding: 7px 11px;
             border-radius: 7px;
             cursor: pointer;
-            font-size: 13px;
-            color: #0f172a;
         }
 
         button:hover {
-            background: #eff6ff;
             border-color: #2563eb;
+            background: #eff6ff;
         }
 
         pre {
-            background: #0f172a;
-            color: #dbeafe;
-            padding: 18px;
-            border-radius: 10px;
+            background: #fff;
+            color: #111827;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 9px;
             overflow: auto;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 13px;
-            line-height: 1.7;
+            margin-top: 12px;
         }
 
-        .info {
-            color: #64748b;
-            font-size: 14px;
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
         }
 
-        .info a {
+        th {
+            background: #f8fafc;
+            color: #111827;
+        }
+
+        td code {
             color: #2563eb;
-            text-decoration: none;
         }
 
         footer {
             border-top: 1px solid #e2e8f0;
-            padding: 25px 0;
+            border-bottom: none;
+            padding: 22px 0;
             text-align: center;
             font-size: 13px;
             color: #64748b;
+            background: #fff;
         }
 
-        @media (max-width: 600px) {
+        /* User cards example */
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .user-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            background: #fff;
+        }
+
+        .user-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        .user-card p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .user-card a {
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        @media(max-width:600px) {
             main {
-                padding: 40px 0;
+                padding: 30px 0;
             }
 
             .card {
@@ -185,105 +246,276 @@
             .endpoint {
                 flex-wrap: wrap;
             }
-
-            .endpoint code {
-                min-width: 0;
-            }
         }
     </style>
 </head>
+
 <body>
 
-<header>
-    <div class="container nav">
-        <div class="brand">Hapro<span>ID</span> API</div>
-        <a href="https://haproid.netlify.app" target="_blank">HaproID ↗</a>
-    </div>
-</header>
-
-<main class="container">
-    <div class="label">Developer API</div>
-    <h1>HaproID API</h1>
-    <p class="intro">
-        Access public HaproID directory data through a simple JSON endpoint.
-        Built for developers and applications.
-    </p>
-
-    <div class="status">
-        <span class="dot"></span>
-        Public endpoint
-    </div>
-
-    <section class="card">
-        <h2>API Endpoint</h2>
-        <div class="endpoint">
-            <span class="method">GET</span>
-            <code id="apiUrl">https://haproid-hub.vercel.app/assets/json/users-list.json</code>
-            <button onclick="copyApi()">Copy</button>
+    <header>
+        <div class="container nav">
+            <div class="brand">Hapro<span>ID</span> API</div>
+            <a href="https://haproid.netlify.app" target="_blank" rel="noopener">HaproID ↗</a>
         </div>
-    </section>
+    </header>
 
-    <section class="card">
-        <h2>Example Response</h2>
-        <pre><code>[
-  {
+    <main class="container">
+
+        <div class="label">Developer Documentation</div>
+        <h1>HaproID API</h1>
+
+        <p class="intro">
+            Access public HaproID profile data through a simple JSON endpoint.
+            Use it to display profiles and integrate HaproID data into your projects.
+        </p>
+
+        <div class="status" id="apiStatus">
+            <span class="dot"></span>
+            <span>Checking API...</span>
+        </div>
+
+        <!-- Endpoint -->
+        <section class="card">
+            <h2>API Endpoint</h2>
+            <p class="info">Use this URL to retrieve profile directory data.</p>
+
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <code id="apiUrl">https://haproid-hub.vercel.app/assets/json/users-list.json</code>
+                <button onclick="copyApi(this)">Copy</button>
+            </div>
+        </section>
+
+        <!-- Fields -->
+        <section class="card">
+            <h2>Data Fields</h2>
+            <p class="info">A profile may contain the following information:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>Unique profile ID</td></tr>
+                    <tr><td><code>name</code></td><td>Display name</td></tr>
+                    <tr><td><code>email</code></td><td>Public email, if available</td></tr>
+                    <tr><td><code>phone</code></td><td>Public phone, if available</td></tr>
+                    <tr><td><code>date</code></td><td>Registration date</td></tr>
+                    <tr><td><code>lastUpdated</code></td><td>Last update date</td></tr>
+                    <tr><td><code>role</code></td><td>Profile role</td></tr>
+                    <tr><td><code>location</code></td><td>Profile location</td></tr>
+                    <tr><td><code>status</code></td><td>Profile status</td></tr>
+                    <tr><td><code>bio</code></td><td>Profile description</td></tr>
+                    <tr><td><code>profile</code></td><td>Profile page URL or path</td></tr>
+                    <tr><td><code>img</code> / <code>image</code></td><td>Profile image path</td></tr>
+                    <tr><td><code>skills</code></td><td>Skills array</td></tr>
+                    <tr><td><code>featured</code></td><td>Featured status (Boolean)</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Example -->
+        <section class="card">
+            <h2>Example Response</h2>
+
+            <pre><code>[
+ {
     "id": "pro-susheel-01",
     "name": "Susheel Kumar",
-    "date": "20 May 2026",
-    "lastUpdated": "20 May 2026",
     "role": "Full Stack Developer",
     "location": "Bihar, India",
-    "status": "Team",
-    "bio": "Founder of Haproven and Full Stack Developer passionate about modern web applications and digital ecosystems.",
+    "bio": "Developer and founder of Haproven.",
     "profile": "/user/pro-susheel-01/",
     "img": "/assets/img/pro-susheel-01.webp",
-    "skills": ["HTML", "CSS", "JavaScript", "PHP"],
+    "skills": ["HTML", "CSS", "JavaScript"],
     "featured": true
-  },
+ }
 ]</code></pre>
-    </section>
+        </section>
 
-    <section class="card">
-        <h2>Usage</h2>
-        <p class="info">
-            Fetch the JSON data directly using JavaScript:
-        </p>
-        <pre><code>fetch("https://haproid-hub.vercel.app/assets/json/users-list.json")
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error(error));</code></pre>
-    </section>
+        <!-- Usage -->
+        <section class="card">
+            <h2>Usage</h2>
+            <p class="info">Fetch and read the JSON data using JavaScript:</p>
 
-    <section class="card">
-        <h2>About HaproID API</h2>
-        <p class="info">
-            HaproID API provides publicly accessible profile directory data
-            in JSON format for integration, profile discovery and
-            developer projects. No authentication is required for this
-            public endpoint.
-        </p>
-    </section>
-</main>
+            <pre><code>fetch("https://haproid-hub.vercel.app/assets/json/users-list.json")
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error(error));</code></pre>
+        </section>
 
-<footer>
-    <div class="container">
-        HaproID API · Part of Haproven Tech Community
-    </div>
-</footer>
+        <!-- Filter -->
+        <section class="card">
+            <h2>Filter Featured Profiles</h2>
 
-<script>
-    function copyApi() {
-        const url = document.getElementById("apiUrl").textContent;
-        navigator.clipboard.writeText(url).then(() => {
-            const btn = document.querySelector(".endpoint button");
-            btn.textContent = "Copied!";
-            setTimeout(() => btn.textContent = "Copy", 1500);
-        });
-    }
-</script>
+            <pre><code>fetch("https://haproid-hub.vercel.app/assets/json/users-list.json")
+    .then(response => response.json())
+    .then(data => {
+        const users = data.filter(
+            user => user.featured === true
+        );
+        console.log(users);
+    });</code></pre>
+        </section>
 
+        <!-- Display User Cards -->
+        <section class="card">
+            <h2>Display User Cards</h2>
+            <p class="info">
+                Display HaproID profiles on your website using HTML, CSS and JavaScript.
+                Follow these steps.
+            </p>
 
-<a href=""></a>
+            <h3 style="margin-top:20px">1. Add HTML</h3>
+            <p class="info">Create a container where the user cards will appear.</p>
+
+            <pre><code>&lt;div id="usercard"&gt;&lt;/div&gt;</code></pre>
+
+            <h3 style="margin-top:20px">2. Add CSS</h3>
+            <p class="info">Style the profile cards.</p>
+
+            <pre><code>.user-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.user-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.user-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.user-card p {
+    color: #64748b;
+    font-size: 14px;
+}</code></pre>
+
+            <h3 style="margin-top:20px">3. Add JavaScript</h3>
+            <p class="info">
+                Fetch profiles and display them. Profiles with
+                <code>featured: false</code> will be hidden.
+            </p>
+
+            <pre><code>fetch("https://haproid-hub.vercel.app/assets/json/users-list.json")
+    .then(res => res.json())
+    .then(users => {
+        document.getElementById("usercard").innerHTML = users
+            .filter(user => user.featured !== false)
+            .map(user => `
+                &lt;div class="user-card"&gt;
+                    &lt;img src="${'https://haproid.netlify.app' + (user.img || user.image)}" alt="${user.name || 'User'}"&gt;
+                    &lt;h3&gt;${user.name || "Unknown"}&lt;/h3&gt;
+                    &lt;p&gt;${user.role || ""}&lt;/p&gt;
+                    &lt;p&gt;${user.location || ""}&lt;/p&gt;
+                    &lt;p&gt;${user.bio || ""}&lt;/p&gt;
+                    &lt;a href="${user.profile || '#'}"&gt;Profile&lt;/a&gt;
+                &lt;/div&gt;
+            `).join("");
+    })
+    .catch(error => {
+        document.getElementById("usercard").innerHTML =
+            "&lt;p&gt;Unable to load users.&lt;/p&gt;";
+        console.error(error);
+    });</code></pre>
+
+            <h3 style="margin-top:20px">4. Result</h3>
+            <p class="info">Your user profiles will appear like this:</p>
+
+            <div class="user-grid">
+                <div class="user-card">
+                    <img src="https://haproid.netlify.app/assets/img/pro-susheel-01.webp" alt="Example user">
+                    <h3>Example User</h3>
+                    <p>Full Stack Developer</p>
+                    <p>Bihar, India</p>
+                    <a href="https://haproid.netlify.app" target="_blank" rel="noopener">Profile</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notes -->
+        <section class="card">
+            <h2>Notes</h2>
+            <p class="info">
+                This is a public read-only endpoint. No authentication is required.
+                Fields may differ between profiles. Handle missing data and API
+                errors in your application. Use profile data responsibly.
+            </p>
+        </section>
+
+        <!-- About -->
+        <section class="card">
+            <h2>About HaproID</h2>
+            <p class="info">
+                HaproID is a digital profile identity and directory initiative
+                within the Haproven ecosystem, helping people discover profiles
+                and profile information.
+            </p>
+
+            <p style="margin-top:12px">
+                <a href="https://haproid.netlify.app" target="_blank" rel="noopener">HaproID ↗</a>
+                &nbsp;·&nbsp;
+                <a href="https://haproven.netlify.app" target="_blank" rel="noopener">Haproven ↗</a>
+            </p>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            HaproID API · Part of Haproven Tech Community
+        </div>
+    </footer>
+
+    <script>
+        const API = "https://haproid-hub.vercel.app/assets/json/users-list.json";
+
+        function copyApi(button) {
+            const url = document.getElementById("apiUrl").textContent;
+
+            navigator.clipboard.writeText(url).then(() => {
+                button.textContent = "Copied!";
+                setTimeout(() => button.textContent = "Copy", 1500);
+            }).catch(() => {
+                button.textContent = "Failed";
+                setTimeout(() => button.textContent = "Copy", 1500);
+            });
+        }
+
+        async function checkAPI() {
+            const status = document.getElementById("apiStatus");
+
+            try {
+                const response = await fetch(API);
+                if (!response.ok) throw new Error();
+
+                const data = await response.json();
+                if (!Array.isArray(data)) throw new Error();
+
+                status.innerHTML = `
+                    <span class="dot" style="background:#22c55e"></span>
+                    <span style="color:#16a34a">API Available</span>
+                `;
+            } catch {
+                status.innerHTML = `
+                    <span class="dot" style="background:#ef4444"></span>
+                    <span style="color:#dc2626">Unable to verify API status</span>
+                `;
+            }
+        }
+
+        checkAPI();
+    </script>
 
 </body>
 </html>
