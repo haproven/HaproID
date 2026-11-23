@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <title>HaproID API</title>
+    <meta name="description" content="HaproID public API for accessing structured profile directory data.">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: min(900px, 92%);
+            margin: auto;
+        }
+
+        header {
+            border-bottom: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .nav {
+            min-height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .brand span {
+            color: #2563eb;
+        }
+
+        .nav a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        main {
+            padding: 65px 0;
+        }
+
+        .label {
+            color: #2563eb;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(30px, 5vw, 46px);
+            line-height: 1.2;
+            margin: 12px 0;
+        }
+
+        .intro {
+            color: #64748b;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #15803d;
+            margin-bottom: 25px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .card h2 {
+            font-size: 17px;
+            margin-bottom: 12px;
+        }
+
+        .endpoint {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .method {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 4px 9px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .endpoint code {
+            font-size: 13px;
+            flex: 1;
+        }
+
+        button {
+            border: 1px solid #cbd5e1;
+            background: white;
+            padding: 7px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #0f172a;
+        }
+
+        button:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #dbeafe;
+            padding: 18px;
+            border-radius: 10px;
+            overflow: auto;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .info {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .info a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 25px 0;
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 40px 0;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .endpoint {
+                flex-wrap: wrap;
+            }
+
+            .endpoint code {
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container nav">
+        <div class="brand">Hapro<span>ID</span> API</div>
+        <a href="https://haproid.netlify.app" target="_blank">HaproID ↗</a>
+    </div>
+</header>
+
+<main class="container">
+    <div class="label">Developer API</div>
+    <h1>HaproID API</h1>
+    <p class="intro">
+        Access public HaproID directory data through a simple JSON endpoint.
+        Built for developers and applications.
+    </p>
+
+    <div class="status">
+        <span class="dot"></span>
+        Public endpoint
+    </div>
+
+    <section class="card">
+        <h2>API Endpoint</h2>
+        <div class="endpoint">
+            <span class="method">GET</span>
+            <code id="apiUrl">https://haproid-hub.vercel.app/assets/json/users-list.json</code>
+            <button onclick="copyApi()">Copy</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Example Response</h2>
+        <pre><code>[
+  {
+    "id": "pro-susheel-01",
+    "name": "Susheel Kumar",
+    "role": "Full Stack Developer",
+    "location": "Bihar, India",
+    "status": "Team",
+    "profile": "/user/pro-susheel-01/",
+    "featured": true
+  }
+]</code></pre>
+    </section>
+
+    <section class="card">
+        <h2>Usage</h2>
+        <p class="info">
+            Fetch the JSON data directly using JavaScript:
+        </p>
+        <pre><code>fetch("https://haproid-hub.vercel.app/assets/json/users-list.json")
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error(error));</code></pre>
+    </section>
+
+    <section class="card">
+        <h2>About HaproID API</h2>
+        <p class="info">
+            HaproID API provides publicly accessible profile directory data
+            in JSON format for integration, profile discovery and
+            developer projects. No authentication is required for this
+            public endpoint.
+        </p>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        HaproID API · Part of Haproven Tech Community
+    </div>
+</footer>
+
+<script>
+    function copyApi() {
+        const url = document.getElementById("apiUrl").textContent;
+        navigator.clipboard.writeText(url).then(() => {
+            const btn = document.querySelector(".endpoint button");
+            btn.textContent = "Copied!";
+            setTimeout(() => btn.textContent = "Copy", 1500);
+        });
+    }
+</script>
+
+</body>
+</html>
